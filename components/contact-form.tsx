@@ -20,6 +20,19 @@ const formSchema = z.object({
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 })
 
+const inputVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      delay: i * 0.15,
+      ease: "easeOut",
+    },
+  }),
+}
+
 export default function ContactForm() {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
@@ -36,127 +49,110 @@ export default function ContactForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
-    // In a real app, you would send this data to your backend
     setIsSubmitted(true)
   }
 
   return (
-    <section id="contact" className="py-16 md:py-24">
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+    <section id="contact" className="py-20 bg-gradient-to-br from-[#f4f4f6] to-[#e0e7ff] dark:from-[#0f172a] dark:to-[#1e293b]">
+      <div className="container max-w-2xl mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl font-bold mb-4 text-primary drop-shadow-lg">Contact Us</h2>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
             Ready to turn your unused software licenses into cash? Get in touch with our team.
           </p>
-        </div>
+        </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="max-w-md mx-auto"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="bg-white/80 dark:bg-[#0f172a]/60 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-border space-y-6"
         >
           {isSubmitted ? (
-            <div className="text-center p-8 border rounded-lg bg-background">
-              <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h3 className="text-2xl font-bold mb-2">Thank You!</h3>
               <p className="text-muted-foreground mb-6">
                 Your message has been received. Our team will get back to you within 24 hours.
               </p>
               <Button onClick={() => setIsSubmitted(false)}>Send Another Message</Button>
-            </div>
+            </motion.div>
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john@example.com" type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Acme Inc." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="licenseType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>License Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select license type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="enterprise">Enterprise Software</SelectItem>
-                          <SelectItem value="cloud">Cloud Services</SelectItem>
-                          <SelectItem value="saas">SaaS Subscriptions</SelectItem>
-                          <SelectItem value="desktop">Desktop Applications</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Tell us about the software licenses you want to sell..."
-                          className="min-h-[120px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full">
-                  Submit
-                </Button>
+                {["name", "email", "company", "licenseType", "message"].map((field, i) => (
+                  <motion.div
+                    key={field}
+                    variants={inputVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={i}
+                  >
+                    <FormField
+                      control={form.control}
+                      name={field as keyof z.infer<typeof formSchema>}
+                      render={({ field: f }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium capitalize text-primary">{field}</FormLabel>
+                          <FormControl>
+                            {field === "licenseType" ? (
+                              <Select onValueChange={f.onChange} defaultValue={f.value}>
+                                <SelectTrigger className="focus:ring-2 focus:ring-primary/50 transition-all">
+                                  <SelectValue placeholder="Select license type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="enterprise">Enterprise Software</SelectItem>
+                                  <SelectItem value="cloud">Cloud Services</SelectItem>
+                                  <SelectItem value="saas">SaaS Subscriptions</SelectItem>
+                                  <SelectItem value="desktop">Desktop Applications</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : field === "message" ? (
+                              <Textarea
+                                placeholder="Tell us about the software licenses you want to sell..."
+                                className="min-h-[120px] transition-all border-primary/40 focus:ring-2 focus:ring-primary/40 focus:border-primary/60 hover:shadow-md"
+                                {...f}
+                              />
+                            ) : (
+                              <Input
+                                placeholder={`Enter your ${field}`}
+                                className="transition-all border-primary/40 focus:ring-2 focus:ring-primary/40 focus:border-primary/60 hover:shadow-md"
+                                type={field === "email" ? "email" : "text"}
+                                {...f}
+                              />
+                            )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                ))}
+                <motion.div
+                  variants={inputVariants}
+                  initial="hidden"
+                  animate="visible"
+                  custom={5}
+                >
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  >
+                    Submit
+                  </Button>
+                </motion.div>
               </form>
             </Form>
           )}
